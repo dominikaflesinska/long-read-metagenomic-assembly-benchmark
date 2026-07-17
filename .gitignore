@@ -1,0 +1,28 @@
+# Large datasets
+reads/
+reference/
+
+# Assembly results
+assemblies/
+
+# QUAST outputs
+quast/
+
+# Rust build artifacts
+myloasm/target/
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+
+# HPC outputs
+*.out
+*.slurm
+
+# Local assembler source/build (not part of reproducible workflow)
+myloasm/
+
+# Local installers
+rustup-init.sh
