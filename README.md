@@ -164,13 +164,13 @@ A library named `_sse2` contained SSE4.1 code — despite `build.rs` compiling t
 
 ### Root cause
 
-The build script compiles four ISA variants of the same C source (`abpoa_align_simd.c`) — SSE2, SSE4.1, AVX2, AVX512BW — using the [`cc`](https://docs.rs/cc) crate, once per variant with different flags. Diagnosis required intercepting the actual compiler invocations (via a logging wrapper on `PATH`, since `cargo build -vv` does not print `cc`-crate-issued compiler commands) and comparing them byte-for-byte against manual reproductions. Two independent bugs were found stacked on top of each other:
+The build script compiles four ISA variants of the same C source (`abpoa_align_simd.c`) - SSE2, SSE4.1, AVX2, AVX512BW, using the [`cc`](https://docs.rs/cc) crate, once per variant with different flags. Diagnosis required intercepting the actual compiler invocations (via a logging wrapper on `PATH`, since `cargo build -vv` does not print `cc`-crate-issued compiler commands) and comparing them byte-for-byte against manual reproductions. Two independent bugs were found stacked on top of each other:
 
 1. **Object file collisions.** The `cc` crate derives each compiled object's filename from a hash of the *source file path*, not its compile flags. Since all four variants compile `abpoa_align_simd.c` into the same `OUT_DIR`, they raced to write the same `.o` filename, so the wrong variant's object could end up archived into `libabpoa_align_simd_sse2.a`.
 
    **Fix:** give each ISA variant its own `OUT_DIR` subfolder via `cc::Build::out_dir()`, so the four compilations never touch the same object file.
 
-2. **`-U__SSE4_1__` doesn't disable the actual target ISA.** Even after isolating the output directories, the SSE2 variant *still* compiled to the SSE4.1 code path. `-U__SSE4_1__` removes only the preprocessor macro; on this toolchain (GCC 11.5, RHEL 9) SSE4.1/4.2 are part of the default enabled instruction set, and `<immintrin.h>`'s per-intrinsic `#pragma GCC target(...)` / `push_options` / `pop_options` blocks restore ISA-related macros based on what the compiler can *actually* target — not what the command line last `#undef`'d. The macro was gone right after preprocessing in isolation, but came back once the real compilation walked through the SSE4.1 intrinsic headers.
+2. **`-U__SSE4_1__` doesn't disable the actual target ISA.** Even after isolating the output directories, the SSE2 variant *still* compiled to the SSE4.1 code path. `-U__SSE4_1__` removes only the preprocessor macro; on this toolchain (GCC 11.5, RHEL 9) SSE4.1/4.2 are part of the default enabled instruction set, and `<immintrin.h>`'s per-intrinsic `#pragma GCC target(...)` / `push_options` / `pop_options` blocks restore ISA-related macros based on what the compiler can *actually* target - not what the command line last `#undef`'d. The macro was gone right after preprocessing in isolation, but came back once the real compilation walked through the SSE4.1 intrinsic headers.
 
    **Fix:** explicitly disable the higher ISA levels at the target-feature level, not just their macros:
    ```rust
