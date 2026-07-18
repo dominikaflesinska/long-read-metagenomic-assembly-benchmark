@@ -10,7 +10,7 @@ The workflow:
 2. comparison of both assemblies against the sample's gold-standard reference with **(Meta)QUAST** ([Mikheenko et al., *Bioinformatics* 2016](https://doi.org/10.1093/bioinformatics/btv697))
 3. inspection of the QUAST HTML report to get a feeling for assembly metrics and possible assembly issues (fragmentation, misassemblies, genome recovery)
 
-Optional long-read trimming ([fastplong](https://github.com/OpenGene/fastplong)) and host-read filtering ([deacon](https://github.com/bede/deacon)) were not applied in this run — reads were assembled directly from the raw CAMI III FASTQ, since the dataset is already simulated/host-free.
+Optional long-read trimming ([fastplong](https://github.com/OpenGene/fastplong)) and host-read filtering ([deacon](https://github.com/bede/deacon)) were not applied in this run, reads were assembled directly from the raw CAMI III FASTQ, since the dataset is already simulated/host-free.
 
 The project was performed on an HPC Linux environment and includes workflow automation, reproducibility files, and documentation of a real-world Rust/C FFI compilation issue encountered during myloasm installation.
 
@@ -190,11 +190,7 @@ Detailed troubleshooting notes are included in `docs/TROUBLESHOOTING.md`.
 
 The project provides scripts and environment information required to reproduce the analysis.
 
-**Environment**
-
-```bash
-conda env create -f environment.yml
-```
+The workflow was executed using separate Conda environments for assembly and QUAST evaluation.
 
 **Run metaFlye assembly**
 
@@ -242,7 +238,7 @@ cami_project/
 └── myloasm/
 ```
 
-Large generated files — raw sequencing reads, assembly outputs, temporary build files, and intermediate assembler data — are excluded from version control.
+Large generated files - raw sequencing reads, assembly outputs, temporary build files, and intermediate assembler data, are excluded from version control.
 
 ## Limitations
 
